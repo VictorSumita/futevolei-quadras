@@ -1,0 +1,22 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# Ambiente
+.env
+.env.local
+appsettings.Development.json
+
+# IDEs
+.vs/
+.idea/
+.vscode/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
