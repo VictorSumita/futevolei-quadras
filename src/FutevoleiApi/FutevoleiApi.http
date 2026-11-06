@@ -1,0 +1,6 @@
+@FutevoleiApi_HostAddress = http://localhost:5244
+
+GET {{FutevoleiApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

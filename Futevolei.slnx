@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FutevoleiApi/FutevoleiApi.csproj" />
+  </Folder>
+</Solution>
