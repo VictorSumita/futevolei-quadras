@@ -1,23 +1,35 @@
+using FutevoleiApi.Configuration;
+using MongoDB.Driver;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDb"));
+
+var mongoSettings = builder.Configuration.GetSection("MongoDb").Get<MongoDbSettings>()
+    ?? throw new InvalidOperationException("Seção MongoDb não encontrada na configuração.");
+
+builder.Services.AddSingleton<IMongoClient>(_ =>
+    new MongoClient(mongoSettings.ConnectionString));
+
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+    sp.GetRequiredService<IMongoClient>().GetDatabase(mongoSettings.DatabaseName));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
