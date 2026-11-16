@@ -1,4 +1,6 @@
-using FutevoleiApi.Configuration;
+﻿using FutevoleiApi.Configuration;
+using FutevoleiApi.Repositories;
+using FutevoleiApi.Services;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,10 @@ builder.Services.AddSingleton<IMongoClient>(_ =>
 
 builder.Services.AddScoped<IMongoDatabase>(sp =>
     sp.GetRequiredService<IMongoClient>().GetDatabase(mongoSettings.DatabaseName));
+
+builder.Services.AddScoped<IQuadraRepository, QuadraRepository>();
+builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+builder.Services.AddScoped<IQuadraService, QuadraService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
