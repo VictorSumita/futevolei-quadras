@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futevolei Quadras</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+         background:#f4f6f8; color:#1f2933; }
+  header { background:#0f5132; color:#fff; padding:16px 24px; }
+  header h1 { margin:0; font-size:20px; font-weight:600; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.8; }
+  main { max-width:960px; margin:0 auto; padding:24px; }
+  h2 { font-size:22px; margin:0 0 16px; }
+  h3 { font-size:17px; margin:24px 0 12px; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
+  .card { background:#fff; border:1px solid #dde3ea; border-radius:10px; padding:16px; }
+  .card h3 { margin:0 0 8px; font-size:17px; }
+  .card p { margin:4px 0; font-size:14px; color:#52606d; }
+  .preco { color:#0f5132; font-weight:600; font-size:15px; }
+  .badge { display:inline-block; padding:2px 10px; border-radius:999px;
+           font-size:12px; font-weight:600; margin-top:8px; }
+  .badge.on { background:#d7f5e3; color:#0f5132; }
+  .badge.off { background:#fde2e1; color:#9b1c1c; }
+  .btn { display:inline-block; margin-top:12px; padding:9px 16px; background:#0f5132;
+         color:#fff; border:0; border-radius:8px; font-size:14px; font-weight:600;
+         text-decoration:none; cursor:pointer; }
+  .btn:hover { background:#0b3d26; }
+  .btn.sec { background:#fff; color:#0f5132; border:1px solid #0f5132; }
+  .voltar { display:inline-block; margin-bottom:16px; color:#0f5132; text-decoration:none;
+            font-size:14px; font-weight:600; }
+  .painel { background:#fff; border:1px solid #dde3ea; border-radius:10px; padding:16px; }
+  .painel p { margin:6px 0; font-size:14px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px;
+          overflow:hidden; border:1px solid #dde3ea; }
+  th, td { padding:10px 12px; text-align:left; font-size:14px; border-bottom:1px solid #eef2f6; }
+  th { background:#f8fafc; font-size:13px; color:#52606d; text-transform:uppercase; letter-spacing:.03em; }
+  tr:last-child td { border-bottom:0; }
+  form { background:#fff; border:1px solid #dde3ea; border-radius:10px; padding:20px; max-width:520px; }
+  label { display:block; font-size:13px; font-weight:600; margin:14px 0 6px; color:#3e4c59; }
+  label:first-of-type { margin-top:0; }
+  input { width:100%; padding:10px 12px; border:1px solid #cbd5e0; border-radius:8px; font-size:14px; }
+  input:focus { outline:2px solid #0f5132; outline-offset:1px; }
+  .msg { padding:12px 14px; border-radius:8px; font-size:14px; margin:16px 0; }
+  .msg.erro { background:#fde2e1; color:#9b1c1c; border:1px solid #f5b5b3; }
+  .msg.ok { background:#d7f5e3; color:#0f5132; border:1px solid #a8e6c3; }
+  .loading, .vazio { color:#7b8794; font-size:14px; padding:24px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Futevolei Quadras</h1>
+  <p>Reserva de horarios por quadra</p>
+</header>
+<main id="app"><p class="loading">Carregando...</p></main>
+
+<script>
+// Trocar aqui se as rotas forem renomeadas para plural
+const ROTAS = { quadras: "/api/Quadra", reservas: "/api/Reserva" };
+
+const app = document.getElementById("app");
+
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+
+const fmtMoeda = (v) => Number(v ?? 0).toLocaleString("pt-BR",
+  { style:"currency", currency:"BRL" });
+
+const fmtData = (iso) => iso
+  ? new Date(iso).toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" })
+  : "-";
+
+const tipoPiso = (v) => {
+  if (v === null || v === undefined) return "-";
+  if (typeof v === "string") return v;
+  const nomes = { 1:"Areia", 2:"Saibro", 3:"Concreto", 4:"Sintetico" };
+  return nomes[v] || ("Piso " + v);
+};
+
+async function api(url, opcoes) {
+  const r = await fetch(url, opcoes);
+  const texto = await r.text();
+  let dados = null;
+  try { dados = texto ? JSON.parse(texto) : null; } catch { dados = texto; }
+
+  if (!r.ok) {
+    const msg = (dados && (dados.erro || dados.message || dados.detail || dados.title))
+      || texto || ("Erro " + r.status);
+    const e = new Error(msg);
+    e.status = r.status;
+    throw e;
+  }
+  return dados;
+}
+
+const erroBox = (e) =>
+  '<div class="msg erro"><strong>Nao foi possivel carregar.</strong><br>' +
+  esc(e.message) + (e.status ? " (HTTP " + e.status + ")" : "") + "</div>";
+
+// ---------- VISAO 1: LISTA ----------
+async function viewLista() {
+  app.innerHTML = '<p class="loading">Carregando quadras...</p>';
+  try {
+    const quadras = await api(ROTAS.quadras);
+    if (!quadras || quadras.length === 0) {
+      app.innerHTML = '<h2>Quadras</h2><p class="vazio">Nenhuma quadra cadastrada.</p>';
+      return;
+    }
+    app.innerHTML =
+      "<h2>Quadras</h2><div class='grid'>" +
+      quadras.map(q => `
+        <article class="card">
+          <h3>${esc(q.nome)}</h3>
+          <p class="preco">${fmtMoeda(q.precoHora)} / hora</p>
+          <p>${q.coberta ? "Coberta" : "Descoberta"} - ${esc(tipoPiso(q.tipoPiso))}</p>
+          <span class="badge ${q.ativa ? "on" : "off"}">${q.ativa ? "Ativa" : "Inativa"}</span><br>
+          <a class="btn" href="#/quadra/${esc(q.id)}">Ver detalhes</a>
+        </article>`).join("") +
+      "</div>";
+  } catch (e) { app.innerHTML = erroBox(e); }
+}
+
+// ---------- VISAO 2: DETALHE ----------
+async function viewDetalhe(id) {
+  app.innerHTML = '<p class="loading">Carregando detalhes...</p>';
+  try {
+    const [q, reservas] = await Promise.all([
+      api(ROTAS.quadras + "/" + encodeURIComponent(id)),
+      api(ROTAS.reservas + "/quadra/" + encodeURIComponent(id)).catch(() => [])
+    ]);
+
+    const linhas = (reservas && reservas.length)
+      ? reservas.map(r => `
+          <tr>
+            <td>${fmtData(r.inicio)}</td>
+            <td>${fmtData(r.fim)}</td>
+            <td>${esc(r.responsavel)}</td>
+            <td>${fmtMoeda(r.valorTotal)}</td>
+            <td>${esc(r.status)}</td>
+          </tr>`).join("")
+      : '<tr><td colspan="5" class="vazio">Nenhuma reserva para esta quadra.</td></tr>';
+
+    app.innerHTML = `
+      <a class="voltar" href="#/">Voltar para a lista</a>
+      <h2>${esc(q.nome)}</h2>
+      <div class="painel">
+        <p><strong>Preco por hora:</strong> ${fmtMoeda(q.precoHora)}</p>
+        <p><strong>Piso:</strong> ${esc(tipoPiso(q.tipoPiso))}</p>
+        <p><strong>Coberta:</strong> ${q.coberta ? "Sim" : "Nao"}</p>
+        <p><strong>Situacao:</strong> ${q.ativa ? "Ativa" : "Inativa"}</p>
+      </div>
+      <a class="btn" href="#/quadra/${esc(q.id)}/nova">Nova reserva</a>
+      <h3>Reservas desta quadra</h3>
+      <table>
+        <thead><tr><th>Inicio</th><th>Fim</th><th>Responsavel</th><th>Valor</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`;
+  } catch (e) { app.innerHTML = erroBox(e); }
+}
+
+// ---------- VISAO 3: FORMULARIO ----------
+function viewFormulario(id) {
+  const agora = new Date(Date.now() + 86400000);
+  const pad = (n) => String(n).padStart(2, "0");
+  const valor = agora.getFullYear() + "-" + pad(agora.getMonth() + 1) + "-" + pad(agora.getDate())
+    + "T" + pad(agora.getHours()) + ":00";
+
+  app.innerHTML = `
+    <a class="voltar" href="#/quadra/${esc(id)}">Voltar para o detalhe</a>
+    <h2>Nova reserva</h2>
+    <div id="aviso"></div>
+    <form id="form-reserva">
+      <label for="responsavel">Responsavel</label>
+      <input id="responsavel" name="responsavel" required maxlength="80" placeholder="Nome de quem reserva">
+
+      <label for="telefone">Telefone</label>
+      <input id="telefone" name="telefone" required maxlength="20" placeholder="11999998888">
+
+      <label for="inicio">Inicio</label>
+      <input id="inicio" name="inicio" type="datetime-local" required value="${valor}">
+
+      <label for="fim">Fim</label>
+      <input id="fim" name="fim" type="datetime-local" required value="${valor}">
+
+      <button class="btn" type="submit" id="enviar">Reservar</button>
+    </form>`;
+
+  const form = document.getElementById("form-reserva");
+  const aviso = document.getElementById("aviso");
+  const botao = document.getElementById("enviar");
+
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+    aviso.innerHTML = "";
+
+    const corpo = {
+      quadraId: id,
+      responsavel: form.responsavel.value.trim(),
+      telefone: form.telefone.value.trim(),
+      inicio: form.inicio.value,
+      fim: form.fim.value
+    };
+
+    try {
+      const criada = await api(ROTAS.reservas, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo)
+      });
+      aviso.innerHTML = '<div class="msg ok"><strong>Reserva confirmada.</strong><br>' +
+        fmtData(criada.inicio) + " ate " + fmtData(criada.fim) +
+        " - total " + fmtMoeda(criada.valorTotal) + "</div>";
+      form.reset();
+    } catch (e) {
+      const dica = e.status === 409 ? "Horario ja ocupado nesta quadra. Escolha outro."
+        : e.status === 400 ? "Dados invalidos: " + esc(e.message)
+        : e.status === 404 ? "Quadra nao encontrada."
+        : esc(e.message);
+      aviso.innerHTML = '<div class="msg erro"><strong>Nao foi possivel reservar.</strong><br>'
+        + dica + "</div>";
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Reservar";
+    }
+  });
+}
+
+// ---------- ROTEADOR ----------
+async function rotear() {
+  const hash = location.hash.replace(/^#/, "") || "/";
+  const partes = hash.split("/").filter(Boolean);
+
+  if (partes.length === 0) return viewLista();
+  if (partes[0] === "quadra" && partes.length === 2) return viewDetalhe(partes[1]);
+  if (partes[0] === "quadra" && partes[2] === "nova") return viewFormulario(partes[1]);
+
+  app.innerHTML = '<p class="vazio">Pagina nao encontrada.</p>';
+}
+
+window.addEventListener("hashchange", rotear);
+rotear();
+</script>
+</body>
+</html>
