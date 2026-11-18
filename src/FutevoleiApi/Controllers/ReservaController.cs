@@ -1,11 +1,11 @@
-Ôªøusing FutevoleiApi.DTOs;
+using FutevoleiApi.DTOs;
 using FutevoleiApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FutevoleiApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/reservas")]
 public class ReservaController : ControllerBase
 {
     private readonly IReservaService _service;
@@ -34,7 +34,7 @@ public class ReservaController : ControllerBase
     {
         var reserva = await _service.ObterPorIdAsync(id);
         if (reserva is null)
-            return NotFound(new { mensagem = "Reserva n√£o encontrada." });
+            return NotFound(new { mensagem = "Reserva n„o encontrada." });
 
         return Ok(reserva);
     }
@@ -64,7 +64,7 @@ public class ReservaController : ControllerBase
     {
         var cancelou = await _service.CancelarAsync(id);
         if (!cancelou)
-            return NotFound(new { mensagem = "Reserva n√£o encontrada." });
+            return NotFound(new { mensagem = "Reserva n„o encontrada." });
 
         return NoContent();
     }
@@ -74,7 +74,7 @@ public class ReservaController : ControllerBase
     {
         var removeu = await _service.RemoverAsync(id);
         if (!removeu)
-            return NotFound(new { mensagem = "Reserva n√£o encontrada." });
+            return NotFound(new { mensagem = "Reserva n„o encontrada." });
 
         return NoContent();
     }

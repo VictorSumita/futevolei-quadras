@@ -1,11 +1,11 @@
-Ôªøusing FutevoleiApi.DTOs;
+using FutevoleiApi.DTOs;
 using FutevoleiApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FutevoleiApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/quadras")]
 public class QuadraController : ControllerBase
 {
     private readonly IQuadraService _service;
@@ -27,7 +27,7 @@ public class QuadraController : ControllerBase
     {
         var quadra = await _service.ObterPorIdAsync(id);
         if (quadra is null)
-            return NotFound(new { mensagem = "Quadra n√£o encontrada." });
+            return NotFound(new { mensagem = "Quadra n„o encontrada." });
 
         return Ok(quadra);
     }
@@ -36,10 +36,10 @@ public class QuadraController : ControllerBase
     public async Task<IActionResult> Criar([FromBody] QuadraRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
-            return BadRequest(new { mensagem = "O nome da quadra √© obrigat√≥rio." });
+            return BadRequest(new { mensagem = "O nome da quadra È obrigatÛrio." });
 
         if (request.PrecoHora <= 0)
-            return BadRequest(new { mensagem = "O pre√ßo por hora deve ser maior que zero." });
+            return BadRequest(new { mensagem = "O preÁo por hora deve ser maior que zero." });
 
         var criada = await _service.CriarAsync(request);
         return CreatedAtAction(nameof(ObterPorId), new { id = criada.Id }, criada);
@@ -49,14 +49,14 @@ public class QuadraController : ControllerBase
     public async Task<IActionResult> Atualizar(string id, [FromBody] QuadraRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Nome))
-            return BadRequest(new { mensagem = "O nome da quadra √© obrigat√≥rio." });
+            return BadRequest(new { mensagem = "O nome da quadra È obrigatÛrio." });
 
         if (request.PrecoHora <= 0)
-            return BadRequest(new { mensagem = "O pre√ßo por hora deve ser maior que zero." });
+            return BadRequest(new { mensagem = "O preÁo por hora deve ser maior que zero." });
 
         var atualizou = await _service.AtualizarAsync(id, request);
         if (!atualizou)
-            return NotFound(new { mensagem = "Quadra n√£o encontrada." });
+            return NotFound(new { mensagem = "Quadra n„o encontrada." });
 
         return NoContent();
     }
@@ -66,7 +66,7 @@ public class QuadraController : ControllerBase
     {
         var removeu = await _service.RemoverAsync(id);
         if (!removeu)
-            return NotFound(new { mensagem = "Quadra n√£o encontrada." });
+            return NotFound(new { mensagem = "Quadra n„o encontrada." });
 
         return NoContent();
     }
