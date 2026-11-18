@@ -131,15 +131,21 @@ async function viewDetalhe(id) {
     ]);
 
     const linhas = (reservas && reservas.length)
-      ? reservas.map(r => `
+      ? reservas.map(r => {
+          const cancelada = String(r.status).toLowerCase().startsWith("cancel") || r.status === 2;
+          return `
           <tr>
             <td>${fmtData(r.inicio)}</td>
             <td>${fmtData(r.fim)}</td>
             <td>${esc(r.responsavel)}</td>
             <td>${fmtMoeda(r.valorTotal)}</td>
             <td>${esc(r.status)}</td>
-          </tr>`).join("")
-      : '<tr><td colspan="5" class="vazio">Nenhuma reserva para esta quadra.</td></tr>';
+            <td>${cancelada ? "" :
+              `<button class="btn sec" style="margin:0;padding:6px 10px;font-size:13px"
+                       data-cancelar="${esc(r.id)}">Cancelar</button>`}</td>
+          </tr>`;
+        }).join("")
+      : '<tr><td colspan="6" class="vazio">Nenhuma reserva para esta quadra.</td></tr>';
 
     app.innerHTML = `
       <a class="voltar" href="#/">Voltar para a lista</a>
@@ -153,10 +159,25 @@ async function viewDetalhe(id) {
       <a class="btn" href="#/quadra/${esc(q.id)}/nova">Nova reserva</a>
       <h3>Reservas desta quadra</h3>
       <table>
-        <thead><tr><th>Inicio</th><th>Fim</th><th>Responsavel</th><th>Valor</th><th>Status</th></tr></thead>
+        <thead><tr><th>Inicio</th><th>Fim</th><th>Responsavel</th><th>Valor</th><th>Status</th><th></th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>`;
+
+    app.querySelectorAll("[data-cancelar]").forEach(b =>
+      b.addEventListener("click", () => cancelarReserva(b.dataset.cancelar)));
+
   } catch (e) { app.innerHTML = erroBox(e); }
+}
+
+async function cancelarReserva(id) {
+  if (!confirm("Cancelar esta reserva?")) return;
+  try {
+    await api(ROTAS.reservas + "/" + encodeURIComponent(id) + "/cancelar",
+      { method: "PATCH" });
+    rotear();
+  } catch (e) {
+    alert("Nao foi possivel cancelar: " + e.message);
+  }
 }
 
 // ---------- VISAO 3: FORMULARIO ----------

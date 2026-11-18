@@ -51,23 +51,23 @@ os repositorios sao substituidos por implementacoes em memoria.
 
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
-| GET | /api/Quadra | Lista todas as quadras |
-| GET | /api/Quadra/{id} | Busca quadra por id |
-| POST | /api/Quadra | Cria quadra |
-| PUT | /api/Quadra/{id} | Atualiza quadra |
-| DELETE | /api/Quadra/{id} | Remove quadra |
+| GET | /api/quadras | Lista todas as quadras |
+| GET | /api/quadras/{id} | Busca quadra por id |
+| POST | /api/quadras | Cria quadra |
+| PUT | /api/quadras/{id} | Atualiza quadra |
+| DELETE | /api/quadras/{id} | Remove quadra |
 
 ### Reservas
 
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
-| GET | /api/Reserva | Lista todas as reservas |
-| GET | /api/Reserva/quadra/{quadraId} | Reservas de uma quadra |
-| GET | /api/Reserva/{id} | Busca reserva por id |
-| POST | /api/Reserva | Cria reserva |
-| PUT | /api/Reserva/{id} | Atualiza reserva |
-| PATCH | /api/Reserva/{id}/cancelar | Cancela reserva |
-| DELETE | /api/Reserva/{id} | Remove reserva |
+| GET | /api/reservas | Lista todas as reservas |
+| GET | /api/reservas/quadra/{quadraId} | Reservas de uma quadra |
+| GET | /api/reservas/{id} | Busca reserva por id |
+| POST | /api/reservas | Cria reserva |
+| PUT | /api/reservas/{id} | Atualiza reserva |
+| PATCH | /api/reservas/{id}/cancelar | Cancela reserva |
+| DELETE | /api/reservas/{id} | Remove reserva |
 
 ## Regras de negocio
 
