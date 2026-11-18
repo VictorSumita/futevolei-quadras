@@ -1,7 +1,7 @@
-﻿using FutevoleiApi.Configuration;
+using FutevoleiApi.Configuration;
+using MongoDB.Driver;
 using FutevoleiApi.Repositories;
 using FutevoleiApi.Services;
-using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,13 +21,25 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 
 builder.Services.AddScoped<IQuadraRepository, QuadraRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
-builder.Services.AddScoped<IQuadraService, QuadraService>();
-builder.Services.AddScoped<IReservaService, ReservaService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IQuadraService, QuadraService>();
+builder.Services.AddScoped<IReservaService, ReservaService>();
 
 var app = builder.Build();
+app.UseDefaultFiles();      // serve index.html na rota "/"
+app.UseStaticFiles();       // serve wwwroot
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseAuthentication();    // se você adicionou o JWT
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
 
 if (app.Environment.IsDevelopment())
 {
