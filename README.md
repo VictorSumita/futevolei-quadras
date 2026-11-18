@@ -1,5 +1,7 @@
 ﻿# Futevolei Quadras
 
+**Aluno:** Victor Hugo Leroy Sumita 202451084534 · **Curso:** Analise e Desenvolvimento de Sistemas · **Turma:** 3001
+
 API REST para gestao de quadras de futevolei e reserva de horarios.
 Desenvolvida em .NET 10 com ASP.NET Core e MongoDB.
 
@@ -120,3 +122,12 @@ HTTP.
 **Testes sem infraestrutura.** Os testes usam repositorios em memoria, o que
 permite `dotnet test` funcionar em qualquer maquina sem Docker. O filtro de
 conflito em memoria espelha a mesma expressao usada no MongoDB.
+
+## Uso de IA
+
+- **Ferramentas usadas:** Adapta ONE (assistente de IA generativa)
+- **Onde ajudou:** gerou o esqueleto dos repositorios Mongo, o mapeamento de
+  ObjectId e a estrutura inicial do ReservaService e dos testes
+- **O que eu revisei/reescrevi:** revisei a conversao de fuso no ParaUtc e a
+  ordem das validacoes no ValidarAsync; ajustei o calculo do valor total para
+  arredondar em duas casas e o retorno 409 para conflito
